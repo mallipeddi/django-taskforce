@@ -1,5 +1,49 @@
-from django.conf import settings
+import threading
 
-class Errand(object):
-    pass
+from django.conf import settings
+import taskforce
+
+class BaseTask(object):
+    """Base class for all tasks.
     
+    Users are expected to implement their own Task classes by sub-classing this class.
+    """
+    def __init__(self):
+        self._lock = threading.RLock()
+        self._status = taskforce.TASK_STATUS.WAITING
+        self._progress = {}
+    
+    def _get_status(self):
+        if self._lock.acquire():
+            try:
+                return self._status
+            finally:
+                self._lock.release()
+    def _set_status(self, status):
+        if self._lock.acquire():
+            try:
+                self._status = status
+            finally:
+                self._lock.release()
+    status = property(_get_status, _set_status)
+    
+    def _get_progress(self):
+        if self._lock.acquire():
+            try:
+                return self._progress
+            finally:
+                self._lock.release()
+    def _set_progress(self, progress):
+        if self._lock.acquire():
+            try:
+                self._progress = progress
+            finally:
+                self._lock.release()
+    progress = property(_get_progress, _set_progress)
+    
+    def _start(self):
+        self.run()
+    
+    def run(self):
+        "Implement this method in your sub-classes. This is where the meat of a Task goes."
+        pass

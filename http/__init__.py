@@ -1,3 +1,3 @@
-from errands.http.server import ErrandHTTPServer
+from taskforce.http.server import TaskForceHTTPServer
 
-__all__ = ('ErrandHTTPServer', )
+__all__ = ('TaskForceHTTPServer', )
