@@ -2,7 +2,7 @@ import threading
 import Queue
 
 import taskforce
-from taskforce.exceptions import TaskNotFound, TaskNotComplete
+from taskforce.exceptions import TaskNotFound, TaskNotComplete, TaskTypeNotFound
 
 class Slave(threading.Thread):
     def __init__(self, todo, poll_timeout=5):  # TODO - think about the right poll_timeout
@@ -25,6 +25,7 @@ class Slave(threading.Thread):
             except Queue.Empty:
                 continue
             except Exception:
+                # TODO - figure out a way to display this exception in error msg
                 task.status = taskforce.TASK_STATUS.FAILED
 
     def dismiss(self):
@@ -57,17 +58,30 @@ class State(object):
                 self._lock.release()
 
 class TaskForce(object):
-    def __init__(self, num_slaves=5):
+    def __init__(self, available_tasks=[], num_slaves=5):
         self._todo_queue = Queue.Queue()
         self._state = State()
         self._slaves = []
         self._init_slaves(num_slaves)
+        self._init_tasks(available_tasks)
+    
+    def _init_tasks(self, available_tasks):
+        if not hasattr(self, '_available_tasks'):
+            self._available_tasks = dict()
+        for t in available_tasks:
+            self._available_tasks[t.__name__] = t
     
     def _init_slaves(self, num_slaves):
         for i in range(num_slaves):
             self._slaves.append(
                 Slave(todo = self._todo_queue)
             )
+
+    def create_task(self, taskname):
+        if self._available_tasks.has_key(taskname):
+            return self._available_tasks[taskname].__call__()
+        else:
+            raise TaskTypeNotFound("Task of type %s not recognised." % taskname)
 
     def add_task(self, task):
         # add to todo queue
@@ -95,6 +109,10 @@ class TaskForce(object):
         except KeyError:
             raise TaskNotFound("Task not found.")
         t_status = t.status
-        print t_status
-        if t_status != taskforce.TASK_STATUS.FINISHED and t_status != taskforce.TASK_STATUS.FAILED:
-            raise TaskNotComplete("Cannot return results since tasks is not complete yet.")
+        if t_status == taskforce.TASK_STATUS.FINISHED:
+            self._state.del_task(task_id)
+            return t.results
+        elif t_status == taskforce.TASK_STATUS.FAILED:
+            raise TaskFailed("Cannot return results because task failed.")
+        else:
+            raise TaskNotComplete("Cannot return results because task is not complete yet.")

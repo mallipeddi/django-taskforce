@@ -41,8 +41,22 @@ class BaseTask(object):
                 self._lock.release()
     progress = property(_get_progress, _set_progress)
     
+    def _get_results(self):
+        if self._lock.acquire():
+            try:
+                return self._results
+            finally:
+                self._lock.release()
+    def _set_results(self, results):
+        if self._lock.acquire():
+            try:
+                self._results = results
+            finally:
+                self._lock.release()
+    results = property(_get_results, _set_results)
+    
     def _start(self):
-        self.run()
+        self._results = self.run()
     
     def run(self):
         "Implement this method in your sub-classes. This is where the meat of a Task goes."

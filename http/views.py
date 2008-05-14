@@ -13,14 +13,16 @@ def spit_errors(fn):
             })
     return new_fn
 
-def task_new(force):
-    t = BaseTask()
-    t.id = 'task1'
+@spit_errors
+def task_new(force, task_name, task_id):
+    t = force.create_task(task_name)
+    t.id = task_id
     force.add_task(t)
     return simplejson.dumps({
-        'id':'task1',
+        'id':t.id,
     })
 
+@spit_errors
 def task_status(force, id):
     status = force.get_status(task_id = id)
     progress = force.get_progress(task_id = id)

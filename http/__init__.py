@@ -1,3 +1,3 @@
-from taskforce.http.server import TaskForceHTTPServer
+from taskforce.http.server import runserver
 
-__all__ = ('TaskForceHTTPServer', )
+__all__ = ('runserver', )

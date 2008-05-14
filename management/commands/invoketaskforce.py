@@ -1,10 +1,11 @@
 import sys
+from optparse import make_option
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
-from optparse import make_option
-from taskforce.http import TaskForceHTTPServer
+import taskforce
+from taskforce.http import runserver
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
@@ -34,16 +35,13 @@ class Command(BaseCommand):
         #    self._log("ERROR - Takes in exactly 1 arg (start|stop).", error=True)
         #    sys.exit(1)
         
-        import taskforce
+        available_tasks = []
         for app_name in settings.INSTALLED_APPS:
-            print "Importing %s" % app_name
             app_mod = __import__(app_name, {}, {}, ['tasks'])
-            #print app_mod
-            #print hasattr(app_mod, 'tasks')
             if hasattr(app_mod, 'tasks'):
                 for k in app_mod.tasks.__dict__.values():
                     if isinstance(k, type) and issubclass(k, taskforce.BaseTask):
-                        print k
+                        available_tasks.append(k)
         
         print "Starting HTTP server..."
-        TaskForceHTTPServer.start('127.0.0.1', 9000)
+        runserver(available_tasks, ('127.0.0.1', 9000))

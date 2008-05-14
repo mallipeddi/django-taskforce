@@ -1,32 +1,32 @@
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from SocketServer import ThreadingMixIn
-from taskforce.service import TaskForce
+import web
 
 from django.core.urlresolvers import get_resolver
 
-_resolver = get_resolver('taskforce.http.urls')
+from taskforce.service import TaskForce
+from taskforce.http.views import *
+
 force = None
 
-class TaskForceHTTPServer(ThreadingMixIn, HTTPServer):
-    @staticmethod
-    def start(address, port):
-        global force
-        force = TaskForce()
-        TaskForceHTTPServer((address, port), TaskForceHTTPRequestHandler).serve_forever()
+urls = (
+    r'^/task/new/$', 'handle_task_new',
+    r'^/task/(?P<id>\w+)/$', 'handle_task_status',
+    r'^/task/(?P<id>\w+)/results/$', 'handle_task_results',
+)
 
-class TaskForceHTTPRequestHandler(BaseHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
+class handle_task_new:
+    def POST(self):
+        i = web.input()
+        print task_new(force, task_name = i.task_name, task_id = i.task_id)
 
-    def do_GET(self):
-        view_func, view_args, view_kwargs = _resolver.resolve(self.path)
-        try:
-            resp = view_func(force, *view_args, **view_kwargs)
-            self.send_response(200, 'OK')
-            self.end_headers()
-            self.wfile.write(resp)
-        except Exception, e:
-            self.send_response(500)
-            self.end_headers()
-            self.wfile.write(e)
+class handle_task_status:
+    def GET(self, id):
+        print task_status(force, id)
 
+class handle_task_results:
+    def POST(self, id):
+        print task_results(force, id)
+
+def runserver(available_tasks, address):
+    global force
+    force = TaskForce(available_tasks = available_tasks)
+    web.runsimple(web.webapi.wsgifunc(web.webpyfunc(urls, globals())), address)
