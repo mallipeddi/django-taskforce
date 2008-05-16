@@ -1,0 +1,22 @@
+django-taskforce
+
+django-taskforce implements a job server for Django apps. It lets you execute long-running tasks asynchronously in a separate process. Since a Django application blocks while serving a request it is best to move long-running tasks off into a background process that is divorced from http request/response cycle.
+
+Though these are very early days for django-taskforce, it is heavily inspired by backgroundRb (http://backgroundrb.rubyforge.org/index.html) and will eventually support everything backgroundrb does.
+
+DEPENDENCIES
+    * Install web.py ($easy_install web.py)
+
+TODO
+
+    * Support for (min, max) thread-pool sizes. thread-pool needs to grow dynamically depending on the load.
+    * Support for periodic tasks.
+    * Swap web.py's CherryPy server for a custom, libevent-based server.
+    * Test suite!
+    * Support for non-JSON serializable argument & result types. 
+    * Processes instead of threads?
+
+Author: 
+    Harish Mallipeddi 
+    Email - harish.mallipeddi@gmail.com
+    Blog - http://poundbang.in/blog/
