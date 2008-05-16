@@ -5,6 +5,8 @@ import taskforce
 from taskforce.exceptions import TaskNotFound, TaskNotComplete, TaskTypeNotFound
 
 class Slave(threading.Thread):
+    """Worker thread consumes tasks from the task queue and runs the tasks."""
+
     def __init__(self, todo, poll_timeout=5):  # TODO - think about the right poll_timeout
         threading.Thread.__init__(self)
         self.setDaemon(1)
@@ -33,6 +35,10 @@ class Slave(threading.Thread):
         self._dismissed.set()
 
 class State(object):
+    """Maintains a map from task ids to Task objects.
+    
+    Wraps around a normal dict in a thread-safe manner."""
+
     def __init__(self):
         self._state = dict()
         self._lock = threading.RLock()
@@ -59,11 +65,13 @@ class State(object):
                 self._lock.release()
 
 class TaskForce(object):
-    def __init__(self, available_tasks=[], num_slaves=5):
+    "Implements the taskforce service methods"
+
+    def __init__(self, available_tasks, pool_size):
         self._todo_queue = Queue.Queue()
         self._state = State()
         self._slaves = []
-        self._init_slaves(num_slaves)
+        self._init_slaves(pool_size)
         self._init_tasks(available_tasks)
     
     def _init_tasks(self, available_tasks):

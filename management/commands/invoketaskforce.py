@@ -13,7 +13,7 @@ class Command(BaseCommand):
             help = 'Verbose mode for you control freaks'),
     )
     help = """Run taskforce server."""
-    #args = "[start|stop]"
+    args = "[thread-pool size]"
     
     
     def _log(self, msg, error=False):
@@ -24,16 +24,15 @@ class Command(BaseCommand):
         # handle command-line options
         self._verbose = options.get('verbose', False)
         
-        #if len(args) != 1:
-        #    self._log("ERROR - Takes in exactly 1 arg (start|stop). %d were supplied." % len(args), error=True)
-        #    sys.exit(1)
-        #elif args[0] == "start":
-        #    self._start()
-        #elif args[0] == "stop":
-        #    self._stop()
-        #else:
-        #    self._log("ERROR - Takes in exactly 1 arg (start|stop).", error=True)
-        #    sys.exit(1)
+        if len(args) == 0:
+            pool_size = 5
+        elif len(args) == 1:
+            pool_size = int(args[0])
+        else:
+            self._log("ERROR - Takes in exactly 1 optional arg. %d were supplied." % len(args), error=True)
+            sys.exit(1)
+        
+        address, port = taskforce.utils.get_server_loc()
         
         available_tasks = []
         for app_name in settings.INSTALLED_APPS:
@@ -44,4 +43,4 @@ class Command(BaseCommand):
                         available_tasks.append(k)
         
         print "Starting HTTP server..."
-        runserver(available_tasks, ('127.0.0.1', 9000))
+        runserver(available_tasks, pool_size, (address, port))

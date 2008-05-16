@@ -20,7 +20,7 @@ def task_new(force, task_type, task_id, run_args, run_kwargs):
     t = force.create_task(task_type, task_id, run_args, run_kwargs)
     force.add_task(t)
     return simplejson.dumps({
-        'id':t.id,
+        'task_id':task_id,
     })
 
 @spit_errors
@@ -35,5 +35,7 @@ def task_status(force, id):
 @spit_errors
 def task_results(force, id):
     results = force.get_results(task_id = id)
-    return simplejson.dumps(results)
+    return simplejson.dumps({
+        'results':results
+    })
 

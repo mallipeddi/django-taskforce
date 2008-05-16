@@ -1,6 +1,6 @@
 from taskforce.base import BaseTask
-
-__all__ = ('BaseTask', )
+from taskforce.client import TaskforceClient as Taskforce
+from taskforce.client import TaskforceError
 
 # task statuses
 class TASK_STATUS(object):
@@ -8,3 +8,5 @@ class TASK_STATUS(object):
     ACTIVE = 1
     FINISHED = 2
     FAILED = 3
+
+__all__ = ('BaseTask', 'Taskforce', 'TaskforceError', 'TASK_STATUS', )
