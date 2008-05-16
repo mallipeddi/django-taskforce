@@ -24,9 +24,10 @@ class Slave(threading.Thread):
                 task.status = taskforce.TASK_STATUS.FINISHED
             except Queue.Empty:
                 continue
-            except Exception:
+            except Exception, e:
                 # TODO - figure out a way to display this exception in error msg
                 task.status = taskforce.TASK_STATUS.FAILED
+                print e
 
     def dismiss(self):
         self._dismissed.set()
@@ -77,11 +78,14 @@ class TaskForce(object):
                 Slave(todo = self._todo_queue)
             )
 
-    def create_task(self, taskname):
-        if self._available_tasks.has_key(taskname):
-            return self._available_tasks[taskname].__call__()
+    def create_task(self, task_type, task_id, run_args, run_kwargs):
+        if self._available_tasks.has_key(task_type):
+            t = self._available_tasks[task_type].__call__()
+            t.id = task_id
+            t._start(run_args, run_kwargs)
+            return t
         else:
-            raise TaskTypeNotFound("Task of type %s not recognised." % taskname)
+            raise TaskTypeNotFound("Task of type %s not recognised." % task_type)
 
     def add_task(self, task):
         # add to todo queue

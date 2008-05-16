@@ -11,7 +11,8 @@ class BaseTask(object):
     def __init__(self):
         self._lock = threading.RLock()
         self._status = taskforce.TASK_STATUS.WAITING
-        self._progress = {}
+        self._progress = None
+        self._results = None
     
     def _get_status(self):
         if self._lock.acquire():
@@ -55,8 +56,10 @@ class BaseTask(object):
                 self._lock.release()
     results = property(_get_results, _set_results)
     
-    def _start(self):
-        self._results = self.run()
+    def _start(self, run_args=(), run_kwargs={}):
+        def _new_start():
+            self._results = self.run(*run_args, **run_kwargs)
+        self._start = _new_start
     
     def run(self):
         "Implement this method in your sub-classes. This is where the meat of a Task goes."

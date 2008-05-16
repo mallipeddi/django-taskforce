@@ -14,9 +14,10 @@ def spit_errors(fn):
     return new_fn
 
 @spit_errors
-def task_new(force, task_name, task_id):
-    t = force.create_task(task_name)
-    t.id = task_id
+def task_new(force, task_type, task_id, run_args, run_kwargs):
+    run_args = simplejson.loads(run_args)
+    run_kwargs = simplejson.loads(run_kwargs)
+    t = force.create_task(task_type, task_id, run_args, run_kwargs)
     force.add_task(t)
     return simplejson.dumps({
         'id':t.id,

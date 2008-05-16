@@ -16,7 +16,12 @@ urls = (
 class handle_task_new:
     def POST(self):
         i = web.input()
-        print task_new(force, task_name = i.task_name, task_id = i.task_id)
+        print task_new(force, 
+                        task_type = i.task_type,
+                        task_id = i.task_id,
+                        run_args = i.args,
+                        run_kwargs = i.kwargs
+                    )
 
 class handle_task_status:
     def GET(self, id):
