@@ -6,6 +6,7 @@ import web
 
 from django.core.urlresolvers import get_resolver
 
+from taskforce.daemon import Daemon
 from taskforce.service import TaskForce
 from taskforce.http.views import *
 
@@ -42,3 +43,7 @@ def runserver(available_tasks, pool_size, address):
     global force
     force = TaskForce(available_tasks = available_tasks, pool_size = pool_size)
     web.runsimple(web.webapi.wsgifunc(web.webpyfunc(urls, globals())), address)
+
+class TaskforceDaemon(Daemon):
+    def run(self, *args, **kwargs):
+        runserver(*args, **kwargs)
