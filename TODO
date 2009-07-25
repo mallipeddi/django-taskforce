@@ -1,0 +1,9 @@
+TODO
+
+    * Support for (min, max) thread-pool sizes. thread-pool needs to grow dynamically depending on the load.
+    * Support for periodic tasks.
+    * Swap web.py's CherryPy server for a custom, libevent-based server.
+    * Test suite!
+    * Support for non-JSON serializable argument & result types. 
+    * Processes instead of threads?
+

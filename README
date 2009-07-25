@@ -2,21 +2,53 @@ django-taskforce
 
 django-taskforce implements a job server for Django apps. It lets you execute long-running tasks asynchronously in a separate process. Since a Django application blocks while serving a request it is best to move long-running tasks off into a background process that is divorced from http request/response cycle.
 
-Though these are very early days for django-taskforce, it is heavily inspired by backgroundRb (http://backgroundrb.rubyforge.org/index.html) and will eventually support everything backgroundrb does.
+Note of caution: django-taskforce is a bit incomplete - I wrote this quickly for a side-project over a couple of days. If you're going to use this in high-profile apps in production, then be aware there's a long TODO list :) But seriously you should really be using something like gearman :)
+
+How it works: 
+
+taskforce includes :
+    daemon - a separate worker process (has a thread-pool of n worker threads waiting for tasks). Worker process is a simple web.py HTTP daemon which exposes a simple REST API for clients to submit tasks.
+    client library - used to submit tasks, check status, and fetch results from within your Django app.
 
 DEPENDENCIES
     * Install web.py ($easy_install web.py)
 
-TODO
+AUTHOR: 
+    Harish Mallipeddi - http://blog.poundbang.in/
 
-    * Support for (min, max) thread-pool sizes. thread-pool needs to grow dynamically depending on the load.
-    * Support for periodic tasks.
-    * Swap web.py's CherryPy server for a custom, libevent-based server.
-    * Test suite!
-    * Support for non-JSON serializable argument & result types. 
-    * Processes instead of threads?
+INSTRUCTIONS:
 
-Author: 
-    Harish Mallipeddi 
-    Email - harish.mallipeddi@gmail.com
-    Blog - http://poundbang.in/blog/
+0) If you don't have web.py installed, do $easy_install web.py
+
+1) Add 'taskforce' to INSTALLED_APPS in settings.py of your project
+
+2) Create tasks.py under your app folder. taskforce will automatically pick up all the Tasks that you define here just like how Django picks up all the models that you define in models.py.
+
+3) Here's a sample task which waits for 'a' secs and return 'a' (add this to tasks.py that you created above)
+
+import taskforce, time
+
+# Create your models here.
+class MyTask(taskforce.BaseTask):
+    def run(self, a):
+        for i in range(a, 0, -1):
+            self.progress = "%d secs to go..." % i
+            time.sleep(1)
+        self.progress = "done!"
+        return a
+
+4) In your views.py, you can invoke/check status/fetch results of the task as follows:
+
+    Taskforce.submit_new('task1', tasks.MyTask, 10)
+
+    while not Taskforce.has_finished('task1'):
+        time.sleep(1)
+        continue
+
+    print Taskforce.fetch_results('task1')
+
+5) There are some management commands to launch the taskforce worker threads.
+
+    ./manage.py help start_taskforce
+    ./manage.py help stop_taskforce
+
